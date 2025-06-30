@@ -1,77 +1,267 @@
-import transactionsData from '@/services/mockData/transactions'
-
-let transactions = [...transactionsData]
-let lastId = Math.max(...transactions.map(txn => txn.Id))
-
 const transactionService = {
   async getAll() {
-    await new Promise(resolve => setTimeout(resolve, 200))
-    return [...transactions]
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
+          { field: { Name: "CreatedOn" } },
+          { field: { Name: "CreatedBy" } },
+          { field: { Name: "ModifiedOn" } },
+          { field: { Name: "ModifiedBy" } },
+          { field: { Name: "date" } },
+          { field: { Name: "description" } },
+          { field: { Name: "category" } },
+          { field: { Name: "amount" } },
+          { field: { Name: "type" } },
+          { field: { Name: "status" } },
+          { field: { Name: "invoice_id" } },
+          { field: { Name: "reference" } },
+          { field: { Name: "department_id" } },
+          { field: { Name: "reconciled" } },
+          { field: { Name: "payment_method" } },
+          { field: { Name: "ai_confidence" } },
+          { field: { Name: "attachments" } },
+          { field: { Name: "client" } },
+          { field: { Name: "client_id" } },
+          { field: { Name: "vendor_id" } }
+        ]
+      };
+
+      const response = await apperClient.fetchRecords('transaction', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      throw error;
+    }
   },
 
   async getById(id) {
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error('Invalid ID: must be a positive integer')
+      throw new Error('Invalid ID: must be a positive integer');
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 200))
-    const transaction = transactions.find(txn => txn.Id === id)
-    return transaction ? { ...transaction } : null
+
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
+          { field: { Name: "CreatedOn" } },
+          { field: { Name: "CreatedBy" } },
+          { field: { Name: "ModifiedOn" } },
+          { field: { Name: "ModifiedBy" } },
+          { field: { Name: "date" } },
+          { field: { Name: "description" } },
+          { field: { Name: "category" } },
+          { field: { Name: "amount" } },
+          { field: { Name: "type" } },
+          { field: { Name: "status" } },
+          { field: { Name: "invoice_id" } },
+          { field: { Name: "reference" } },
+          { field: { Name: "department_id" } },
+          { field: { Name: "reconciled" } },
+          { field: { Name: "payment_method" } },
+          { field: { Name: "ai_confidence" } },
+          { field: { Name: "attachments" } },
+          { field: { Name: "client" } },
+          { field: { Name: "client_id" } },
+          { field: { Name: "vendor_id" } }
+        ]
+      };
+
+      const response = await apperClient.getRecordById('transaction', id, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching transaction with ID ${id}:`, error);
+      throw error;
+    }
   },
 
   async create(transactionData) {
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    const newTransaction = {
-      ...transactionData,
-      Id: ++lastId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      // Filter to only include Updateable fields
+      const updateableData = {
+        Name: transactionData.Name,
+        Tags: transactionData.Tags,
+        Owner: transactionData.Owner,
+        date: transactionData.date,
+        description: transactionData.description,
+        category: transactionData.category,
+        amount: transactionData.amount,
+        type: transactionData.type,
+        status: transactionData.status,
+        invoice_id: transactionData.invoice_id,
+        reference: transactionData.reference,
+        department_id: transactionData.department_id,
+        reconciled: transactionData.reconciled,
+        payment_method: transactionData.payment_method,
+        ai_confidence: transactionData.ai_confidence,
+        attachments: transactionData.attachments,
+        client: transactionData.client,
+        client_id: transactionData.client_id,
+        vendor_id: transactionData.vendor_id
+      };
+
+      const params = {
+        records: [updateableData]
+      };
+
+      const response = await apperClient.createRecord('transaction', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error(failedRecords[0].message || 'Failed to create transaction');
+        }
+        return response.results[0].data;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      throw error;
     }
-    
-    transactions.push(newTransaction)
-    return { ...newTransaction }
   },
 
   async update(id, transactionData) {
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error('Invalid ID: must be a positive integer')
+      throw new Error('Invalid ID: must be a positive integer');
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    const index = transactions.findIndex(txn => txn.Id === id)
-    if (index === -1) {
-      throw new Error(`Transaction with ID ${id} not found`)
+
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      // Filter to only include Updateable fields plus Id
+      const updateableData = {
+        Id: id,
+        Name: transactionData.Name,
+        Tags: transactionData.Tags,
+        Owner: transactionData.Owner,
+        date: transactionData.date,
+        description: transactionData.description,
+        category: transactionData.category,
+        amount: transactionData.amount,
+        type: transactionData.type,
+        status: transactionData.status,
+        invoice_id: transactionData.invoice_id,
+        reference: transactionData.reference,
+        department_id: transactionData.department_id,
+        reconciled: transactionData.reconciled,
+        payment_method: transactionData.payment_method,
+        ai_confidence: transactionData.ai_confidence,
+        attachments: transactionData.attachments,
+        client: transactionData.client,
+        client_id: transactionData.client_id,
+        vendor_id: transactionData.vendor_id
+      };
+
+      const params = {
+        records: [updateableData]
+      };
+
+      const response = await apperClient.updateRecord('transaction', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        if (failedRecords.length > 0) {
+          console.error(`Failed to update ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error(failedRecords[0].message || 'Failed to update transaction');
+        }
+        return response.results[0].data;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      throw error;
     }
-    
-    const updatedTransaction = {
-      ...transactions[index],
-      ...transactionData,
-      Id: id, // Ensure ID cannot be changed
-      updatedAt: new Date().toISOString()
-    }
-    
-    transactions[index] = updatedTransaction
-    return { ...updatedTransaction }
   },
 
   async delete(id) {
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error('Invalid ID: must be a positive integer')
+      throw new Error('Invalid ID: must be a positive integer');
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 200))
-    
-    const index = transactions.findIndex(txn => txn.Id === id)
-    if (index === -1) {
-      throw new Error(`Transaction with ID ${id} not found`)
+
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        RecordIds: [id]
+      };
+
+      const response = await apperClient.deleteRecord('transaction', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        if (failedRecords.length > 0) {
+          console.error(`Failed to delete ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error(failedRecords[0].message || 'Failed to delete transaction');
+        }
+        return true;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      throw error;
     }
-    
-    const deletedTransaction = transactions[index]
-    transactions.splice(index, 1)
-    return { ...deletedTransaction }
   }
-}
+};
 
 export default transactionService

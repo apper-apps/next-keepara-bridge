@@ -10,6 +10,7 @@ import Input from '@/components/atoms/Input'
 import ApperIcon from '@/components/ApperIcon'
 import { toast } from 'react-toastify'
 import { format } from 'date-fns'
+import transactionService from '@/services/api/transactionService'
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([])
@@ -19,137 +20,13 @@ const Transactions = () => {
   const [filterStatus, setFilterStatus] = useState('all')
   const [selectedTransactions, setSelectedTransactions] = useState([])
 
-  const loadTransactions = async () => {
+const loadTransactions = async () => {
     try {
       setLoading(true)
       setError('')
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 400))
-      
-      // Mock transactions data
-      setTransactions([
-        {
-          Id: 1,
-          description: 'Office Supplies - Staples',
-          amount: -245.67,
-          category: 'Office Expenses',
-          client: 'Acme Corporation',
-          clientId: 1,
-          date: new Date(),
-          reconciled: true,
-          type: 'expense',
-          reference: 'INV-2024-001',
-          paymentMethod: 'Credit Card',
-          aiConfidence: 0.95,
-          attachments: ['receipt-001.pdf']
-        },
-        {
-          Id: 2,
-          description: 'Monthly Consulting Fee',
-          amount: 2500.00,
-          category: 'Professional Services',
-          client: 'Tech Solutions Inc',
-          clientId: 2,
-          date: new Date(Date.now() - 86400000),
-          reconciled: false,
-          type: 'income',
-          reference: 'INV-2024-002',
-          paymentMethod: 'Bank Transfer',
-          aiConfidence: 0.88,
-          attachments: []
-        },
-        {
-          Id: 3,
-          description: 'Internet Service - Comcast',
-          amount: -89.99,
-          category: 'Utilities',
-          client: 'Local Restaurant',
-          clientId: 3,
-          date: new Date(Date.now() - 172800000),
-          reconciled: true,
-          type: 'expense',
-          reference: 'BILL-2024-003',
-          paymentMethod: 'Auto Pay',
-          aiConfidence: 0.92,
-          attachments: ['bill-003.pdf']
-        },
-        {
-          Id: 4,
-          description: 'Client Retainer Payment',
-          amount: 1200.00,
-          category: 'Revenue',
-          client: 'Marketing Agency',
-          clientId: 4,
-          date: new Date(Date.now() - 259200000),
-          reconciled: false,
-          type: 'income',
-          reference: 'RET-2024-004',
-          paymentMethod: 'Check',
-          aiConfidence: 0.76,
-          attachments: ['check-004.jpg']
-        },
-        {
-          Id: 5,
-          description: 'Software Subscription - Adobe',
-          amount: -79.99,
-          category: 'Software',
-          client: 'Acme Corporation',
-          clientId: 1,
-          date: new Date(Date.now() - 345600000),
-          reconciled: true,
-          type: 'expense',
-          reference: 'SUB-2024-005',
-          paymentMethod: 'Credit Card',
-          aiConfidence: 0.98,
-          attachments: []
-        },
-        {
-          Id: 6,
-          description: 'Equipment Purchase - Laptop',
-          amount: -1299.99,
-          category: 'Equipment',
-          client: 'Tech Solutions Inc',
-          clientId: 2,
-          date: new Date(Date.now() - 432000000),
-          reconciled: false,
-          type: 'expense',
-          reference: 'PUR-2024-006',
-          paymentMethod: 'Business Credit Card',
-          aiConfidence: 0.85,
-          attachments: ['receipt-006.pdf', 'warranty-006.pdf']
-        },
-        {
-          Id: 7,
-          description: 'Catering Services Revenue',
-          amount: 3450.00,
-          category: 'Revenue',
-          client: 'Local Restaurant',
-          clientId: 3,
-          date: new Date(Date.now() - 518400000),
-          reconciled: true,
-          type: 'income',
-          reference: 'CAT-2024-007',
-          paymentMethod: 'Cash',
-          aiConfidence: 0.91,
-          attachments: ['receipt-007.pdf']
-        },
-        {
-          Id: 8,
-          description: 'Marketing Campaign Expense',
-          amount: -875.50,
-          category: 'Marketing',
-          client: 'Marketing Agency',
-          clientId: 4,
-          date: new Date(Date.now() - 604800000),
-          reconciled: false,
-          type: 'expense',
-          reference: 'MKT-2024-008',
-          paymentMethod: 'Credit Card',
-          aiConfidence: 0.82,
-          attachments: ['invoice-008.pdf']
-        }
-      ])
+      const data = await transactionService.getAll()
+      setTransactions(data || [])
       
     } catch (err) {
       setError('Failed to load transactions')

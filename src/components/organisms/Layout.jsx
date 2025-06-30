@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from '@/components/organisms/Sidebar'
 import MobileNavigation from '@/components/molecules/MobileNavigation'
 import ApperIcon from '@/components/ApperIcon'
 import Button from '@/components/atoms/Button'
+import { AuthContext } from '@/App'
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -111,12 +112,25 @@ const Layout = () => {
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
+<div className="flex items-center space-x-3">
               <Button variant="ghost" size="sm" icon="Bell" className="relative">
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </Button>
               
               <Button variant="ghost" size="sm" icon="Search" className="hidden sm:flex" />
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                icon="LogOut"
+                onClick={() => {
+                  const { logout } = useContext(AuthContext)
+                  logout()
+                }}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                Logout
+              </Button>
               
               <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
                 <ApperIcon name="User" className="w-4 h-4 text-white" />

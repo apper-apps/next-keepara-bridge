@@ -18,15 +18,15 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState('table') // 'table' or 'grid'
 
-  const loadClients = async () => {
+const loadClients = async () => {
     try {
       setLoading(true)
       setError('')
       
-      // Simulate API call
+      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 300))
       
-      // Mock clients data
+      // Mock clients data (will be replaced with client service when available)
       setClients([
         {
           Id: 1,

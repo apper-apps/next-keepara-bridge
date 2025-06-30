@@ -29,7 +29,7 @@ const ReconciliationPage = () => {
     loadReconciliationData()
   }, [])
 
-  const loadReconciliationData = async () => {
+const loadReconciliationData = async () => {
     try {
       setLoading(true)
       setError(null)
@@ -39,8 +39,8 @@ const ReconciliationPage = () => {
         transactionService.getAll()
       ])
       
-      setBankEntries(bankData)
-      setTransactions(transactionData)
+      setBankEntries(bankData || [])
+      setTransactions(transactionData || [])
     } catch (err) {
       setError('Failed to load reconciliation data')
       toast.error('Failed to load reconciliation data')

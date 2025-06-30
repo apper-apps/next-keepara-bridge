@@ -10,6 +10,7 @@ import Badge from '@/components/atoms/Badge'
 import ApperIcon from '@/components/ApperIcon'
 import { toast } from 'react-toastify'
 import { format } from 'date-fns'
+import transactionService from '@/services/api/transactionService'
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState([])
@@ -18,19 +19,30 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const loadDashboardData = async () => {
+const loadDashboardData = async () => {
     try {
       setLoading(true)
       setError('')
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 400))
+      // Load transactions from service
+      const transactionData = await transactionService.getAll()
+      const transactions = transactionData || []
       
-      // Mock metrics data
+      // Calculate metrics from real data
+      const totalRevenue = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + (t.amount || 0), 0)
+      
+      const totalExpenses = Math.abs(transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + (t.amount || 0), 0))
+      
+      const reconciledCount = transactions.filter(t => t.reconciled).length
+      
       setMetrics([
         {
           title: 'Total Revenue',
-          value: '$47,283',
+          value: `$${totalRevenue.toLocaleString()}`,
           change: '+12.3%',
           changeType: 'positive',
           icon: 'DollarSign',
@@ -38,26 +50,26 @@ const Dashboard = () => {
           trend: 85
         },
         {
-          title: 'Active Clients',
-          value: '24',
-          change: '+3',
+          title: 'Total Expenses',
+          value: `$${totalExpenses.toLocaleString()}`,
+          change: '+8.2%',
           changeType: 'positive',
-          icon: 'Users',
-          iconColor: 'text-blue-500',
+          icon: 'TrendingDown',
+          iconColor: 'text-red-500',
           trend: 72
         },
         {
-          title: 'Pending Invoices',
-          value: '$8,450',
-          change: '-2.1%',
-          changeType: 'negative',
-          icon: 'Receipt',
-          iconColor: 'text-orange-500',
+          title: 'Transactions',
+          value: transactions.length.toString(),
+          change: '+5',
+          changeType: 'positive',
+          icon: 'CreditCard',
+          iconColor: 'text-blue-500',
           trend: 45
         },
         {
-          title: 'Reconciled Today',
-          value: '156',
+          title: 'Reconciled',
+          value: reconciledCount.toString(),
           change: '+24',
           changeType: 'positive',
           icon: 'CheckCircle',
@@ -66,47 +78,10 @@ const Dashboard = () => {
         }
       ])
 
-      // Mock recent transactions
-      setRecentTransactions([
-        {
-          Id: 1,
-          description: 'Office Supplies - Staples',
-          amount: -245.67,
-          category: 'Office Expenses',
-          client: 'Acme Corp',
-          date: new Date(),
-          reconciled: true
-        },
-        {
-          Id: 2,
-          description: 'Monthly Consulting Fee',
-          amount: 2500.00,
-          category: 'Revenue',
-          client: 'Tech Solutions Inc',
-          date: new Date(Date.now() - 86400000),
-          reconciled: false
-        },
-        {
-          Id: 3,
-          description: 'Internet Service',
-          amount: -89.99,
-          category: 'Utilities',
-          client: 'Local Business',
-          date: new Date(Date.now() - 172800000),
-          reconciled: true
-        },
-        {
-          Id: 4,
-          description: 'Client Retainer',
-          amount: 1200.00,
-          category: 'Revenue',
-          client: 'Marketing Agency',
-          date: new Date(Date.now() - 259200000),
-          reconciled: false
-        }
-      ])
+      // Set recent transactions
+      setRecentTransactions(transactions.slice(0, 5))
 
-      // Mock recent clients
+      // Mock recent clients (until client service is available)
       setRecentClients([
         {
           Id: 1,

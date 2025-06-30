@@ -1,77 +1,231 @@
-import bankEntriesData from '@/services/mockData/bankEntries'
-
-let bankEntries = [...bankEntriesData]
-let lastId = Math.max(...bankEntries.map(entry => entry.Id))
-
 const bankEntryService = {
   async getAll() {
-    await new Promise(resolve => setTimeout(resolve, 200))
-    return [...bankEntries]
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
+          { field: { Name: "CreatedOn" } },
+          { field: { Name: "CreatedBy" } },
+          { field: { Name: "ModifiedOn" } },
+          { field: { Name: "ModifiedBy" } },
+          { field: { Name: "date" } },
+          { field: { Name: "description" } },
+          { field: { Name: "reference" } },
+          { field: { Name: "amount" } },
+          { field: { Name: "balance" } },
+          { field: { Name: "type" } },
+          { field: { Name: "status" } }
+        ]
+      };
+
+      const response = await apperClient.fetchRecords('bank_entry', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching bank entries:', error);
+      throw error;
+    }
   },
 
   async getById(id) {
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error('Invalid ID: must be a positive integer')
+      throw new Error('Invalid ID: must be a positive integer');
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 200))
-    const entry = bankEntries.find(entry => entry.Id === id)
-    return entry ? { ...entry } : null
+
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "Owner" } },
+          { field: { Name: "CreatedOn" } },
+          { field: { Name: "CreatedBy" } },
+          { field: { Name: "ModifiedOn" } },
+          { field: { Name: "ModifiedBy" } },
+          { field: { Name: "date" } },
+          { field: { Name: "description" } },
+          { field: { Name: "reference" } },
+          { field: { Name: "amount" } },
+          { field: { Name: "balance" } },
+          { field: { Name: "type" } },
+          { field: { Name: "status" } }
+        ]
+      };
+
+      const response = await apperClient.getRecordById('bank_entry', id, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching bank entry with ID ${id}:`, error);
+      throw error;
+    }
   },
 
   async create(entryData) {
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    const newEntry = {
-      ...entryData,
-      Id: ++lastId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      // Filter to only include Updateable fields
+      const updateableData = {
+        Name: entryData.Name,
+        Tags: entryData.Tags,
+        Owner: entryData.Owner,
+        date: entryData.date,
+        description: entryData.description,
+        reference: entryData.reference,
+        amount: entryData.amount,
+        balance: entryData.balance,
+        type: entryData.type,
+        status: entryData.status
+      };
+
+      const params = {
+        records: [updateableData]
+      };
+
+      const response = await apperClient.createRecord('bank_entry', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error(failedRecords[0].message || 'Failed to create bank entry');
+        }
+        return response.results[0].data;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error creating bank entry:', error);
+      throw error;
     }
-    
-    bankEntries.push(newEntry)
-    return { ...newEntry }
   },
 
   async update(id, entryData) {
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error('Invalid ID: must be a positive integer')
+      throw new Error('Invalid ID: must be a positive integer');
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    const index = bankEntries.findIndex(entry => entry.Id === id)
-    if (index === -1) {
-      throw new Error(`Bank entry with ID ${id} not found`)
+
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      // Filter to only include Updateable fields plus Id
+      const updateableData = {
+        Id: id,
+        Name: entryData.Name,
+        Tags: entryData.Tags,
+        Owner: entryData.Owner,
+        date: entryData.date,
+        description: entryData.description,
+        reference: entryData.reference,
+        amount: entryData.amount,
+        balance: entryData.balance,
+        type: entryData.type,
+        status: entryData.status
+      };
+
+      const params = {
+        records: [updateableData]
+      };
+
+      const response = await apperClient.updateRecord('bank_entry', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        if (failedRecords.length > 0) {
+          console.error(`Failed to update ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error(failedRecords[0].message || 'Failed to update bank entry');
+        }
+        return response.results[0].data;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error updating bank entry:', error);
+      throw error;
     }
-    
-    const updatedEntry = {
-      ...bankEntries[index],
-      ...entryData,
-      Id: id, // Ensure ID cannot be changed
-      updatedAt: new Date().toISOString()
-    }
-    
-    bankEntries[index] = updatedEntry
-    return { ...updatedEntry }
   },
 
   async delete(id) {
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error('Invalid ID: must be a positive integer')
+      throw new Error('Invalid ID: must be a positive integer');
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 200))
-    
-    const index = bankEntries.findIndex(entry => entry.Id === id)
-    if (index === -1) {
-      throw new Error(`Bank entry with ID ${id} not found`)
+
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        RecordIds: [id]
+      };
+
+      const response = await apperClient.deleteRecord('bank_entry', params);
+
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        if (failedRecords.length > 0) {
+          console.error(`Failed to delete ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error(failedRecords[0].message || 'Failed to delete bank entry');
+        }
+        return true;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting bank entry:', error);
+      throw error;
     }
-    
-    const deletedEntry = bankEntries[index]
-    bankEntries.splice(index, 1)
-    return { ...deletedEntry }
   }
-}
+};
 
 export default bankEntryService
