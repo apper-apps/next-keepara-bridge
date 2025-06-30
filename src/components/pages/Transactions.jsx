@@ -174,22 +174,41 @@ const loadTransactions = async () => {
         </div>
       )
     },
-    {
+{
       header: 'Status',
       key: 'reconciled',
-      render: (value, row) => (
-        <div className="flex flex-col items-start space-y-1">
-          <Badge variant={value ? 'success' : 'warning'}>
-            {value ? 'Reconciled' : 'Pending'}
-          </Badge>
-          {row.attachments.length > 0 && (
-            <div className="flex items-center text-xs text-gray-500">
-              <ApperIcon name="Paperclip" className="w-3 h-3 mr-1" />
-              {row.attachments.length}
-            </div>
-          )}
-        </div>
-      )
+      render: (value, row) => {
+        // Safely get attachment count
+        const getAttachmentCount = (attachments) => {
+          if (!attachments) return 0;
+          if (Array.isArray(attachments)) return attachments.length;
+          if (typeof attachments === 'string') {
+            try {
+              const parsed = JSON.parse(attachments);
+              return Array.isArray(parsed) ? parsed.length : 0;
+            } catch {
+              return attachments.trim() ? 1 : 0;
+            }
+          }
+          return 0;
+        };
+
+        const attachmentCount = getAttachmentCount(row.attachments);
+
+        return (
+          <div className="flex flex-col items-start space-y-1">
+            <Badge variant={value ? 'success' : 'warning'}>
+              {value ? 'Reconciled' : 'Pending'}
+            </Badge>
+            {attachmentCount > 0 && (
+              <div className="flex items-center text-xs text-gray-500">
+                <ApperIcon name="Paperclip" className="w-3 h-3 mr-1" />
+                {attachmentCount}
+              </div>
+            )}
+          </div>
+        );
+      }
     }
   ]
 
