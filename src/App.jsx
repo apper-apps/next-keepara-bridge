@@ -137,9 +137,11 @@ function AppContent() {
         <Route path="/error" element={<ErrorPage />} />
         <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
         <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
-        <Route path="/app" element={<Layout />}>
+<Route path="/app" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="clients" element={<Clients />} />
+          <Route path="clients/:id" element={<Clients />} />
+          <Route path="clients/:id/edit" element={<Clients />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="reconciliation" element={<ReconciliationPage />} />
           <Route path="reports" element={<Reports />} />

@@ -1,216 +1,198 @@
-import React, { useState, useEffect } from 'react'
-import DataTable from '@/components/molecules/DataTable'
-import Loading from '@/components/ui/Loading'
-import Error from '@/components/ui/Error'
-import Empty from '@/components/ui/Empty'
-import Card from '@/components/atoms/Card'
-import Button from '@/components/atoms/Button'
-import Badge from '@/components/atoms/Badge'
-import Input from '@/components/atoms/Input'
-import ApperIcon from '@/components/ApperIcon'
-import { toast } from 'react-toastify'
-import { format } from 'date-fns'
-
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import * as clientService from "@/services/api/clientService";
+import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import Card from "@/components/atoms/Card";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import DataTable from "@/components/molecules/DataTable";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
 const Clients = () => {
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState('table') // 'table' or 'grid'
-
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedClient, setSelectedClient] = useState(null)
+  const [formLoading, setFormLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    Name: '',
+    Tags: '',
+    Owner: null
+  })
 const loadClients = async () => {
     try {
       setLoading(true)
       setError('')
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      // Mock clients data (will be replaced with client service when available)
-      setClients([
-        {
-          Id: 1,
-          name: 'Acme Corporation',
-          email: 'contact@acme.com',
-          phone: '+1 (555) 123-4567',
-          companyName: 'Acme Corporation',
-          status: 'active',
-          monthlyRevenue: 3450.00,
-          totalRevenue: 48230.50,
-          transactionCount: 234,
-          lastActivity: new Date(),
-          joinDate: new Date(2023, 0, 15),
-          address: '123 Business Ave, Suite 100, New York, NY 10001'
-        },
-        {
-          Id: 2,
-          name: 'Tech Solutions Inc',
-          email: 'hello@techsolutions.com',
-          phone: '+1 (555) 987-6543',
-          companyName: 'Tech Solutions Inc',
-          status: 'active',
-          monthlyRevenue: 2890.00,
-          totalRevenue: 34560.75,
-          transactionCount: 187,
-          lastActivity: new Date(Date.now() - 172800000),
-          joinDate: new Date(2023, 2, 8),
-          address: '456 Innovation Blvd, Austin, TX 78701'
-        },
-        {
-          Id: 3,
-          name: 'Local Restaurant',
-          email: 'owner@localrestaurant.com',
-          phone: '+1 (555) 456-7890',
-          companyName: 'Local Restaurant LLC',
-          status: 'active',
-          monthlyRevenue: 1240.00,
-          totalRevenue: 18675.25,
-          transactionCount: 156,
-          lastActivity: new Date(Date.now() - 86400000),
-          joinDate: new Date(2023, 4, 22),
-          address: '789 Main Street, Portland, OR 97201'
-        },
-        {
-          Id: 4,
-          name: 'Marketing Agency',
-          email: 'info@marketingpro.com',
-          phone: '+1 (555) 321-0987',
-          companyName: 'Marketing Pro Agency',
-          status: 'pending',
-          monthlyRevenue: 0,
-          totalRevenue: 0,
-          transactionCount: 0,
-          lastActivity: new Date(Date.now() - 604800000),
-          joinDate: new Date(2024, 0, 5),
-          address: '321 Creative Lane, Los Angeles, CA 90210'
-        },
-        {
-          Id: 5,
-          name: 'Retail Store',
-          email: 'manager@retailstore.com',
-          phone: '+1 (555) 654-3210',
-          companyName: 'Downtown Retail Store',
-          status: 'inactive',
-          monthlyRevenue: 0,
-          totalRevenue: 12450.00,
-          transactionCount: 89,
-          lastActivity: new Date(Date.now() - 2592000000),
-          joinDate: new Date(2022, 8, 12),
-          address: '654 Commerce St, Chicago, IL 60601'
-        }
-      ])
+      const data = await clientService.getAll()
+      setClients(data)
       
     } catch (err) {
       setError('Failed to load clients')
-      toast.error('Failed to load clients')
+      console.error('Error loading clients:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCreateClient = async () => {
+    try {
+      setFormLoading(true)
+      const newClient = await clientService.create(formData)
+      
+      if (newClient) {
+        await loadClients()
+        setShowCreateModal(false)
+        setFormData({ Name: '', Tags: '', Owner: null })
+      }
+    } catch (err) {
+      console.error('Error creating client:', err)
+    } finally {
+      setFormLoading(false)
+    }
+  }
+
+  const handleEditClient = async () => {
+    try {
+      setFormLoading(true)
+      const updatedClient = await clientService.update(selectedClient.Id, formData)
+      
+      if (updatedClient) {
+        await loadClients()
+        setShowEditModal(false)
+        setSelectedClient(null)
+        setFormData({ Name: '', Tags: '', Owner: null })
+      }
+    } catch (err) {
+      console.error('Error updating client:', err)
+    } finally {
+      setFormLoading(false)
+    }
+  }
+
+  const handleDeleteClient = async (client) => {
+    if (window.confirm(`Are you sure you want to delete "${client.Name}"?`)) {
+      const success = await clientService.delete(client.Id)
+      if (success) {
+        await loadClients()
+      }
+    }
+  }
+
+  const openCreateModal = () => {
+    setFormData({ Name: '', Tags: '', Owner: null })
+    setShowCreateModal(true)
+  }
+
+  const openEditModal = (client) => {
+    setSelectedClient(client)
+    setFormData({
+      Name: client.Name || '',
+      Tags: client.Tags || '',
+      Owner: client.Owner || null
+    })
+    setShowEditModal(true)
+  }
+
+  const openDetailModal = (client) => {
+    setSelectedClient(client)
+    setShowDetailModal(true)
   }
 
   useEffect(() => {
     loadClients()
   }, [])
 
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.companyName.toLowerCase().includes(searchTerm.toLowerCase())
+const filteredClients = clients.filter(client =>
+    client.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.Tags?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleClientAction = (action, client) => {
+const handleClientAction = (action, client) => {
     switch (action) {
       case 'view':
-        toast.info(`Viewing ${client.name}`)
+        openDetailModal(client)
         break
       case 'edit':
-        toast.info(`Editing ${client.name}`)
+        openEditModal(client)
+        break
+      case 'delete':
+        handleDeleteClient(client)
         break
       case 'transactions':
-        toast.info(`Viewing transactions for ${client.name}`)
+        toast.info(`Viewing transactions for ${client.Name}`)
         break
       case 'reports':
-        toast.info(`Generating reports for ${client.name}`)
+        toast.info(`Generating reports for ${client.Name}`)
         break
       default:
         break
     }
   }
 
-  const columns = [
+const columns = [
     {
       header: 'Client',
-      key: 'name',
+      key: 'Name',
       render: (value, row) => (
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-medium">
-              {value.split(' ').map(n => n[0]).join('').toUpperCase()}
+              {value ? value.split(' ').map(n => n[0]).join('').toUpperCase() : 'C'}
             </span>
           </div>
           <div>
-            <div className="font-medium text-gray-900">{value}</div>
-            <div className="text-sm text-gray-500">{row.email}</div>
+            <div className="font-medium text-gray-900">{value || 'Unnamed Client'}</div>
+            <div className="text-sm text-gray-500">ID: {row.Id}</div>
           </div>
         </div>
       )
     },
     {
-      header: 'Company',
-      key: 'companyName',
+      header: 'Tags',
+      key: 'Tags',
       render: (value) => (
-        <div className="text-sm text-gray-900">{value}</div>
+        <div className="text-sm text-gray-900">{value || 'No tags'}</div>
       )
     },
     {
-      header: 'Monthly Revenue',
-      key: 'monthlyRevenue',
+      header: 'Owner',
+      key: 'Owner',
       render: (value) => (
         <span className="font-medium text-gray-900">
-          ${value.toLocaleString()}
+          {value?.Name || 'Unassigned'}
         </span>
       )
     },
     {
-      header: 'Total Revenue',
-      key: 'totalRevenue',
-      render: (value) => (
-        <span className="font-medium text-green-600">
-          ${value.toLocaleString()}
-        </span>
-      )
-    },
-    {
-      header: 'Transactions',
-      key: 'transactionCount',
-      render: (value) => (
-        <span className="text-sm text-gray-600">{value}</span>
-      )
-    },
-    {
-      header: 'Status',
-      key: 'status',
-      render: (value) => {
-        const variants = {
-          active: 'success',
-          pending: 'warning',
-          inactive: 'error'
-        }
-        return <Badge variant={variants[value]}>{value}</Badge>
-      }
-    },
-    {
-      header: 'Last Activity',
-      key: 'lastActivity',
+      header: 'Created',
+      key: 'CreatedOn',
       render: (value) => (
         <span className="text-sm text-gray-500">
-          {format(new Date(value), 'MMM dd, yyyy')}
+          {value ? format(new Date(value), 'MMM dd, yyyy') : 'Unknown'}
+        </span>
+      )
+    },
+    {
+      header: 'Modified',
+      key: 'ModifiedOn',
+      render: (value) => (
+        <span className="text-sm text-gray-500">
+          {value ? format(new Date(value), 'MMM dd, yyyy') : 'Never'}
         </span>
       )
     }
   ]
 
-  const actions = [
+const actions = [
     {
       icon: 'Eye',
       onClick: (client) => handleClientAction('view', client)
@@ -220,12 +202,8 @@ const loadClients = async () => {
       onClick: (client) => handleClientAction('edit', client)
     },
     {
-      icon: 'CreditCard',
-      onClick: (client) => handleClientAction('transactions', client)
-    },
-    {
-      icon: 'FileText',
-      onClick: (client) => handleClientAction('reports', client)
+      icon: 'Trash2',
+      onClick: (client) => handleClientAction('delete', client)
     }
   ]
 
@@ -242,9 +220,9 @@ const loadClients = async () => {
       <Empty 
         title="No clients yet"
         message="Add your first client to start managing their bookkeeping"
-        icon="Users"
+icon="Users"
         actionLabel="Add First Client"
-        onAction={() => toast.info('Add client form would open here')}
+        onAction={openCreateModal}
       />
     )
   }
@@ -257,7 +235,7 @@ const loadClients = async () => {
           <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
           <p className="text-gray-600">Manage your bookkeeping clients and their financial data</p>
         </div>
-        <Button icon="Plus" onClick={() => toast.info('Add client form would open here')}>
+<Button icon="Plus" onClick={openCreateModal}>
           Add Client
         </Button>
       </div>
@@ -354,9 +332,9 @@ const loadClients = async () => {
         <Empty 
           title="No clients found"
           message={searchTerm ? `No clients match "${searchTerm}"` : "No clients to display"}
-          icon="Users"
+icon="Users"
           actionLabel="Add Client"
-          onAction={() => toast.info('Add client form would open here')}
+          onAction={openCreateModal}
         />
       ) : viewMode === 'table' ? (
         <DataTable
@@ -368,56 +346,295 @@ const loadClients = async () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClients.map((client) => (
-            <Card key={client.Id} className="hover:shadow-card-hover cursor-pointer" onClick={() => handleClientAction('view', client)}>
+<Card key={client.Id} className="hover:shadow-card-hover cursor-pointer" onClick={() => handleClientAction('view', client)}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
                     <span className="text-white font-medium">
-                      {client.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {client.Name ? client.Name.split(' ').map(n => n[0]).join('').toUpperCase() : 'C'}
                     </span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{client.name}</h3>
-                    <p className="text-sm text-gray-500">{client.companyName}</p>
+                    <h3 className="font-semibold text-gray-900">{client.Name || 'Unnamed Client'}</h3>
+                    <p className="text-sm text-gray-500">ID: {client.Id}</p>
                   </div>
                 </div>
-                <Badge variant={client.status === 'active' ? 'success' : client.status === 'pending' ? 'warning' : 'error'}>
-                  {client.status}
+                <Badge variant="info">
+                  Client
                 </Badge>
               </div>
               
-              <div className="space-y-3">
+<div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Monthly Revenue</span>
-                  <span className="text-sm font-medium text-gray-900">${client.monthlyRevenue.toLocaleString()}</span>
+                  <span className="text-sm text-gray-600">Tags</span>
+                  <span className="text-sm font-medium text-gray-900">{client.Tags || 'No tags'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Revenue</span>
-                  <span className="text-sm font-medium text-green-600">${client.totalRevenue.toLocaleString()}</span>
+                  <span className="text-sm text-gray-600">Owner</span>
+                  <span className="text-sm font-medium text-gray-900">{client.Owner?.Name || 'Unassigned'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Transactions</span>
-                  <span className="text-sm font-medium text-gray-900">{client.transactionCount}</span>
+                  <span className="text-sm text-gray-600">Created</span>
+                  <span className="text-sm text-gray-500">
+                    {client.CreatedOn ? format(new Date(client.CreatedOn), 'MMM dd, yyyy') : 'Unknown'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Last Activity</span>
-                  <span className="text-sm text-gray-500">{format(new Date(client.lastActivity), 'MMM dd')}</span>
+                  <span className="text-sm text-gray-600">Modified</span>
+                  <span className="text-sm text-gray-500">
+                    {client.ModifiedOn ? format(new Date(client.ModifiedOn), 'MMM dd') : 'Never'}
+                  </span>
                 </div>
               </div>
               
-              <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
-                <Button variant="ghost" size="sm" icon="Eye" className="flex-1">
+<div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  icon="Eye" 
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleClientAction('view', client)
+                  }}
+                >
                   View
                 </Button>
-                <Button variant="ghost" size="sm" icon="CreditCard" className="flex-1">
-                  Transactions
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  icon="Edit" 
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleClientAction('edit', client)
+                  }}
+                >
+                  Edit
                 </Button>
-                <Button variant="ghost" size="sm" icon="FileText" className="flex-1">
-                  Reports
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  icon="Trash2" 
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleClientAction('delete', client)
+                  }}
+                >
+                  Delete
                 </Button>
               </div>
             </Card>
           ))}
+        </div>
+)}
+
+      {/* Create Client Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Create New Client</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                icon="X" 
+                onClick={() => setShowCreateModal(false)}
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <Input
+                label="Client Name"
+                value={formData.Name}
+                onChange={(e) => setFormData({...formData, Name: e.target.value})}
+                placeholder="Enter client name"
+                required
+              />
+              
+              <Input
+                label="Tags"
+                value={formData.Tags}
+                onChange={(e) => setFormData({...formData, Tags: e.target.value})}
+                placeholder="Enter tags (comma separated)"
+              />
+              
+              <div className="flex space-x-3 pt-4">
+                <Button 
+                  variant="secondary" 
+                  className="flex-1"
+                  onClick={() => setShowCreateModal(false)}
+                  disabled={formLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={handleCreateClient}
+                  disabled={formLoading || !formData.Name.trim()}
+                  loading={formLoading}
+                >
+                  Create Client
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Client Modal */}
+      {showEditModal && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Edit Client</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                icon="X" 
+                onClick={() => setShowEditModal(false)}
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <Input
+                label="Client Name"
+                value={formData.Name}
+                onChange={(e) => setFormData({...formData, Name: e.target.value})}
+                placeholder="Enter client name"
+                required
+              />
+              
+              <Input
+                label="Tags"
+                value={formData.Tags}
+                onChange={(e) => setFormData({...formData, Tags: e.target.value})}
+                placeholder="Enter tags (comma separated)"
+              />
+              
+              <div className="flex space-x-3 pt-4">
+                <Button 
+                  variant="secondary" 
+                  className="flex-1"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={formLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={handleEditClient}
+                  disabled={formLoading || !formData.Name.trim()}
+                  loading={formLoading}
+                >
+                  Update Client
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Client Detail Modal */}
+      {showDetailModal && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">Client Details</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                icon="X" 
+                onClick={() => setShowDetailModal(false)}
+              />
+            </div>
+            
+            <div className="space-y-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg font-bold">
+                    {selectedClient.Name ? selectedClient.Name.split(' ').map(n => n[0]).join('').toUpperCase() : 'C'}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">{selectedClient.Name || 'Unnamed Client'}</h3>
+                  <p className="text-gray-600">Client ID: {selectedClient.Id}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <h4 className="font-semibold text-gray-900 mb-3">Basic Information</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Name:</span>
+                      <span className="font-medium">{selectedClient.Name || 'Not set'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tags:</span>
+                      <span className="font-medium">{selectedClient.Tags || 'No tags'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Owner:</span>
+                      <span className="font-medium">{selectedClient.Owner?.Name || 'Unassigned'}</span>
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card>
+                  <h4 className="font-semibold text-gray-900 mb-3">Timestamps</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Created:</span>
+                      <span className="font-medium">
+                        {selectedClient.CreatedOn ? format(new Date(selectedClient.CreatedOn), 'MMM dd, yyyy HH:mm') : 'Unknown'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Created By:</span>
+                      <span className="font-medium">{selectedClient.CreatedBy?.Name || 'Unknown'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Modified:</span>
+                      <span className="font-medium">
+                        {selectedClient.ModifiedOn ? format(new Date(selectedClient.ModifiedOn), 'MMM dd, yyyy HH:mm') : 'Never'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Modified By:</span>
+                      <span className="font-medium">{selectedClient.ModifiedBy?.Name || 'None'}</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              
+              <div className="flex space-x-3 pt-4">
+                <Button 
+                  variant="secondary"
+                  icon="Edit"
+                  onClick={() => {
+                    setShowDetailModal(false)
+                    openEditModal(selectedClient)
+                  }}
+                  className="flex-1"
+                >
+                  Edit Client
+                </Button>
+                <Button 
+                  variant="danger"
+                  icon="Trash2"
+                  onClick={() => {
+                    setShowDetailModal(false)
+                    handleDeleteClient(selectedClient)
+                  }}
+                  className="flex-1"
+                >
+                  Delete Client
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
