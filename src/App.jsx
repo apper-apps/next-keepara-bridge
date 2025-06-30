@@ -12,6 +12,7 @@ import Documents from '@/components/pages/Documents'
 import Messages from '@/components/pages/Messages'
 import AdminDashboard from '@/components/pages/AdminDashboard'
 import ClientDashboard from '@/components/pages/ClientDashboard'
+import ReconciliationPage from '@/components/pages/ReconciliationPage'
 
 function App() {
   return (
@@ -21,8 +22,9 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/app" element={<Layout />}>
             <Route index element={<Dashboard />} />
-            <Route path="clients" element={<Clients />} />
+<Route path="clients" element={<Clients />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="reconciliation" element={<ReconciliationPage />} />
             <Route path="reports" element={<Reports />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="documents" element={<Documents />} />

@@ -66,11 +66,10 @@ const Sidebar = ({ isOpen, onClose, navigationItems, userRole = 'bookkeeper' }) 
             </button>
           </div>
 
-          {/* Navigation */}
+{/* Navigation */}
           <div className="flex-1 p-6 overflow-y-auto">
             <Navigation items={navigationItems} />
           </div>
-
           {/* Footer */}
           <div className="p-6 border-t border-gray-200">
             <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100">
