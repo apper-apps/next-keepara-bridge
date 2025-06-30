@@ -1,0 +1,21 @@
+{
+  "name": "Keepara - Professional Bookkeeping Platform",
+  "short_name": "Keepara",
+  "description": "Professional bookkeeping made simple with AI-powered insights",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0061FE",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
