@@ -1,10 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ApperIcon from '@/components/ApperIcon'
 import Button from '@/components/atoms/Button'
 import Card from '@/components/atoms/Card'
-
 const LandingPage = () => {
   const features = [
     {
@@ -60,47 +59,51 @@ const LandingPage = () => {
     }
   ]
 
-  const pricingPlans = [
+const pricingPlans = [
     {
       name: 'Starter',
-      price: '$29',
-      period: 'per month',
+      monthlyPrice: 29,
+      yearlyPrice: 24,
       features: [
         'Up to 5 clients',
-        'Basic reporting',
+        'Basic financial reporting',
         'Mobile app access',
-        'Email support'
+        'Email support',
+        'Transaction categorization'
       ],
       popular: false
     },
     {
       name: 'Professional',
-      price: '$79',
-      period: 'per month',
+      monthlyPrice: 79,
+      yearlyPrice: 65,
       features: [
         'Up to 25 clients',
-        'Advanced AI features',
-        'Custom reports',
+        'Advanced AI categorization',
+        'Custom report templates',
         'Priority support',
-        'Stripe integration'
+        'Stripe payment integration',
+        'Client portal access'
       ],
       popular: true
     },
     {
       name: 'Enterprise',
-      price: '$199',
-      period: 'per month',
+      monthlyPrice: 199,
+      yearlyPrice: 165,
       features: [
         'Unlimited clients',
         'White-label solution',
-        'API access',
-        'Dedicated support',
-        'Custom integrations'
+        'API access & webhooks',
+        'Dedicated account manager',
+        'Custom integrations',
+        'Advanced security features'
       ],
       popular: false
     }
   ]
 
+  const [billingPeriod, setBillingPeriod] = useState('monthly')
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -243,63 +246,113 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+{/* Pricing Section */}
       <section className="py-20 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
               Simple, transparent pricing
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
               Choose the plan that fits your practice size and grow as you scale.
             </p>
+            
+            {/* Billing Period Toggle */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="bg-gray-100 p-1 rounded-lg flex">
+                <button
+                  onClick={() => setBillingPeriod('monthly')}
+                  className={`px-4 py-2 rounded-md font-medium transition-all duration-200 ${
+                    billingPeriod === 'monthly'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingPeriod('yearly')}
+                  className={`px-4 py-2 rounded-md font-medium transition-all duration-200 ${
+                    billingPeriod === 'yearly'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Yearly
+                  <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                    Save 20%
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`relative ${plan.popular ? 'transform scale-105' : ''}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                
-                <Card className={`text-center h-full ${plan.popular ? 'border-2 border-primary-500' : ''}`}>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{plan.name}</h3>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-500 ml-2">{plan.period}</span>
-                  </div>
+            {pricingPlans.map((plan, index) => {
+              const currentPrice = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+              const originalMonthlyPrice = billingPeriod === 'yearly' ? plan.monthlyPrice : null;
+              
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className={`relative ${plan.popular ? 'transform scale-105' : ''}`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
                   
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center justify-center text-gray-600">
-                        <ApperIcon name="Check" className="w-4 h-4 text-green-500 mr-2" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Button 
-                    variant={plan.popular ? 'primary' : 'secondary'} 
-                    size="lg" 
-                    className="w-full"
-                    as={Link}
-                    to="/app"
-                  >
-                    Get Started
-                  </Button>
-                </Card>
-              </motion.div>
-            ))}
+                  <Card className={`text-center h-full ${plan.popular ? 'border-2 border-primary-500' : ''}`}>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{plan.name}</h3>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-center">
+                        <span className="text-4xl font-bold text-gray-900">${currentPrice}</span>
+                        <div className="ml-2 text-left">
+                          <div className="text-gray-500 text-sm">
+                            per {billingPeriod === 'monthly' ? 'month' : 'month'}
+                          </div>
+                          {billingPeriod === 'yearly' && (
+                            <div className="text-xs text-green-600 font-medium">
+                              Save ${(originalMonthlyPrice - currentPrice) * 12}/year
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {billingPeriod === 'yearly' && (
+                        <div className="text-sm text-gray-500 mt-1">
+                          Billed annually (${currentPrice * 12}/year)
+                        </div>
+                      )}
+                    </div>
+                    
+                    <ul className="space-y-3 mb-8 text-left">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-start text-gray-600">
+                          <ApperIcon name="Check" className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <Button 
+                      variant={plan.popular ? 'primary' : 'secondary'} 
+                      size="lg" 
+                      className="w-full"
+                      as={Link}
+                      to="/app"
+                    >
+                      Get Started
+                    </Button>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
